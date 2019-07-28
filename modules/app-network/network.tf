@@ -19,7 +19,7 @@ resource "aws_subnet" "dmz" {
   count             = "${length(data.aws_availability_zones.available.names)}"
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   vpc_id            = "${aws_vpc.vpc.id}"
-  cidr_block        = "${cidrsubnet(cidrsubnet(var.cidr_block,2, 0), 6, count.index)}"
+  cidr_block        = "${cidrsubnet(cidrsubnet(var.cidr_block, 2, 0), 6, count.index)}"
 
   tags = {
     "Name" = "DMZ - ${replace(data.aws_availability_zones.available.names[count.index], var.region, "")}"
@@ -30,7 +30,7 @@ resource "aws_subnet" "private" {
   count             = "${length(data.aws_availability_zones.available.names)}"
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   vpc_id            = "${aws_vpc.vpc.id}"
-  cidr_block        = "${cidrsubnet(cidrsubnet(var.cidr_block,2, 1), 6, 6+count.index)}"
+  cidr_block        = "${cidrsubnet(cidrsubnet(var.cidr_block, 2, 1), 6, 6 + count.index)}"
 
   tags = {
     "Name" = "Private - ${replace(data.aws_availability_zones.available.names[count.index], var.region, "")}"
@@ -47,7 +47,7 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_eip" "nat" {
-  tags {
+  tags = {
     Name = "nat_gateway"
   }
 }
@@ -57,7 +57,7 @@ resource "aws_nat_gateway" "default" {
   allocation_id = "${aws_eip.nat.id}"
   depends_on    = ["aws_internet_gateway.igw"]
 
-  tags {
+  tags = {
     Name = "NGW - ${var.network_name}"
   }
 }
@@ -80,6 +80,7 @@ resource "aws_route_table_association" "dmz" {
   count          = "${length(aws_subnet.dmz.*.id)}"
   subnet_id      = "${element(aws_subnet.dmz.*.id, count.index)}"
   route_table_id = "${aws_route_table.dmz.id}"
+  depends_on     = ["aws_subnet.dmz"]
 }
 
 resource "aws_route_table" "private" {
@@ -99,4 +100,5 @@ resource "aws_route_table_association" "private" {
   count          = "${length(aws_subnet.private.*.id)}"
   subnet_id      = "${element(aws_subnet.private.*.id, count.index)}"
   route_table_id = "${aws_route_table.private.id}"
+  depends_on     = ["aws_subnet.private"]
 }

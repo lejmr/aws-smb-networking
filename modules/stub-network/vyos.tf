@@ -17,8 +17,8 @@ data "aws_ami" "vyos" {
 data "template_file" "vpn-config" {
   template = "${file("${path.module}/cloud-init/pptp.conf.tmpl")}"
 
-  vars {
-    localip  = "${cidrhost(cidrsubnet(var.cidr_block,8,0), var.localip)}"
+  vars = {
+    localip  = "${cidrhost(cidrsubnet(var.cidr_block, 8, 0), var.localip)}"
     username = "${var.username}"
     password = "${var.password}"
   }
@@ -28,7 +28,7 @@ data "template_cloudinit_config" "config" {
   gzip          = true
   base64_encode = true
 
-  part = {
+  part {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
 
@@ -39,10 +39,10 @@ final_message: "The system is finally up"
 EOT
   }
 
-  part = {
-    filename     = "pptp.cfg"
+  part {
+    filename = "pptp.cfg"
     content_type = "text/cloud-config"
-    merge_type   = "list(append)+dict(recurse_array)+str()"
+    merge_type = "list(append)+dict(recurse_array)+str()"
 
     content = <<EOT
 write_files:
@@ -67,7 +67,7 @@ resource "aws_instance" "router" {
   instance_type               = "m3.medium"
   subnet_id                   = "${aws_subnet.subnet_dmz.id}"
   vpc_security_group_ids      = ["${aws_security_group.allow_all.id}"]
-  private_ip                  = "${cidrhost(cidrsubnet(var.cidr_block,8,0), var.localip)}"
+  private_ip                  = "${cidrhost(cidrsubnet(var.cidr_block, 8, 0), var.localip)}"
   associate_public_ip_address = "true"
   key_name                    = "${aws_key_pair.ssh_key.key_name}"
   user_data_base64            = "${data.template_cloudinit_config.config.rendered}"
