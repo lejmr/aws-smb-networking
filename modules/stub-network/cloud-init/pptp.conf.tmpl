@@ -1,0 +1,21 @@
+#!/bin/vbash
+source /opt/vyatta/etc/functions/script-template
+
+# Enter configuration
+configure
+
+# Configure PPTP
+set vpn pptp remote-access authentication local-users username ${username} password '${password}'
+set vpn pptp remote-access authentication mode 'local'
+set vpn pptp remote-access client-ip-pool start '192.168.0.10'
+set vpn pptp remote-access client-ip-pool stop '192.168.0.15'
+set vpn pptp remote-access outside-address '${localip}'
+
+# Save it
+commit
+save
+exit
+
+
+# Sources:
+# https://vyos.readthedocs.io/en/latest/commandscripting.html
