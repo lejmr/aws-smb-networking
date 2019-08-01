@@ -11,11 +11,42 @@ set vpn pptp remote-access client-ip-pool start '192.168.0.10'
 set vpn pptp remote-access client-ip-pool stop '192.168.0.15'
 set vpn pptp remote-access outside-address '${localip}'
 
+# Configure IPsec for a remote VPC
+set vpn ipsec ike-group AWS lifetime '28800'
+set vpn ipsec ike-group AWS proposal 1 dh-group '2'
+set vpn ipsec ike-group AWS proposal 1 encryption 'aes128'
+set vpn ipsec ike-group AWS proposal 1 hash 'sha1'
+set vpn ipsec ike-group AWS dead-peer-detection action 'restart'
+set vpn ipsec ike-group AWS dead-peer-detection interval '15'
+set vpn ipsec ike-group AWS dead-peer-detection timeout '30'
+
+set vpn ipsec ipsec-interfaces interface 'eth0'
+set vpn ipsec esp-group AWS compression 'disable'
+set vpn ipsec esp-group AWS lifetime '3600'
+set vpn ipsec esp-group AWS mode 'tunnel'
+set vpn ipsec esp-group AWS pfs 'enable'
+set vpn ipsec esp-group AWS proposal 1 encryption 'aes128'
+set vpn ipsec esp-group AWS proposal 1 hash 'sha1'
+
+# Tunnels
+set interfaces vti vti0 description 'VPC tunnel 1'
+set interfaces vti vti0 mtu '1436'
+
+set interfaces vti vti1 description 'VPC tunnel 2'
+set interfaces vti vti1 mtu '1436'
+
+# BGP proprage local routes
+set protocols bgp 65000 address-family ipv4-unicast network 10.1.0.0/24
+set protocols bgp 65000 address-family ipv4-unicast network 192.168.0.0/24
+
+
 # Save it
 commit
 save
 exit
 
+sudo chown vyos /opt/vyatta/ -R
 
 # Sources:
 # https://vyos.readthedocs.io/en/latest/commandscripting.html
+# https://vyos.readthedocs.io/en/latest/vpn/gre-ipsec.html#
