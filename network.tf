@@ -10,13 +10,50 @@ module "stub-network" {
 }
 
 module "transit-network" {
-  network_name = "Application network"
+  network_name = "Transit network"
   source       = "./modules/transit-network"
   region       = "${var.main_region}"
   cidr_block   = "10.10.0.0/16"
 
   vpn_address = "${module.stub-network.gateway_ip}"
 }
+
+module "app-network1" {
+  network_name = "Application network 1"
+  source       = "./modules/app-network"
+  region       = "${var.main_region}"
+  cidr_block   = "10.11.0.0/16"
+
+  transit_vpc_id = "${module.transit-network.transit_vpc_id}"
+}
+
+module "app-network2" {
+  network_name = "Application network 2"
+  source       = "./modules/app-network"
+  region       = "${var.main_region}"
+  cidr_block   = "10.12.0.0/16"
+
+  transit_vpc_id = "${module.transit-network.transit_vpc_id}"
+}
+
+module "app-network3" {
+  network_name = "Application network 3"
+  source       = "./modules/app-network"
+  region       = "${var.main_region}"
+  cidr_block   = "10.13.0.0/16"
+
+  transit_vpc_id = "${module.transit-network.transit_vpc_id}"
+}
+
+
+# module "app-network4" {
+#   network_name = "Application network 4"
+#   source       = "./modules/app-network"
+#   region       = "${var.main_region}"
+#   cidr_block   = "10.14.0.0/16"
+#
+#   transit_vpc_id = "${module.transit-network.transit_vpc_id}"
+# }
 
 resource "local_file" "vpn-configuration" {
   content = <<EOT
